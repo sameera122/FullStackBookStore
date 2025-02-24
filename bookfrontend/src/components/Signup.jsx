@@ -1,14 +1,46 @@
 import React from 'react';
 import Login from "./Login";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from 'react-hot-toast';
 
 function Signup() {
-   const { register, 
+  const location=useLocation();
+  const navigate=useNavigate();
+  const from=location.state?.from?.pathname || "/";
+   const {
+      register, 
       handleSubmit, 
       formState: { errors }, 
   } = useForm();
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = async (data) => {
+    const userInfo={
+      //data contain all three fields
+      fullname:data.fullname,
+      email:data.email,
+      password:data.password
+    }
+   await axios.post("http://localhost:4001/user/signup",userInfo)
+    .then((res)=>{
+        console.log(res.data);
+        if(res.data){
+          toast.success('Signup successfull');
+          navigate(from,{ replace:true });
+          window.location.reload();
+
+        }
+        localStorage.setItem("Users",JSON.stringify(res.data.user));
+    }).catch((err)=>{
+      // console.log(err);
+      // alert("error:"+err);
+      if(err.response){
+        console.log(err);
+       toast.error("error is: "+err.response.data.message);
+      }
+
+    })
+  };
   return (
     <>
      <div className='flex h-screen items-center justify-center'>
@@ -23,8 +55,8 @@ function Signup() {
           <div className='text-left mt-4 space-y-2'>
             <span>Name</span>
             <br/>
-            <input type="text" placeholder='Enter your Name' className=' w-80 px-3 border rounded outline-none'  {...register("name", { required: true })}/> <br/>
-            {errors.name && <span className="text-red-500">This field is required</span>}
+            <input type="text" placeholder='Enter your Name' className=' w-80 px-3 border rounded outline-none'  {...register("fullname", { required: true })}/> <br/>
+            {errors.fullname && <span className="text-red-500">This field is required</span>}
             </div>    
           <div className='text-left mt-4 space-y-2'>
             <span>Email</span>
